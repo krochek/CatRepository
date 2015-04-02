@@ -1,0 +1,128 @@
+Initialize engine version: 5.0.0f4 (5b98b70ebeb9)
+GfxDevice: creating device client; threaded=1
+Direct3D:
+    Version:  Direct3D 11.0 [level 11.0]
+    Renderer: AMD Radeon R9 200 Series (ID=0x6798)
+    Vendor:   ATI
+    VRAM:     3054 MB
+Begin MonoManager ReloadAssembly
+Platform assembly: C:\Users\dmitri\Dropbox\private\Rollerball\rollerball_Data\Managed\UnityEngine.dll (this message is harmless)
+Loading C:\Users\dmitri\Dropbox\private\Rollerball\rollerball_Data\Managed\UnityEngine.dll into Unity Child Domain
+Platform assembly: C:\Users\dmitri\Dropbox\private\Rollerball\rollerball_Data\Managed\Assembly-CSharp.dll (this message is harmless)
+Loading C:\Users\dmitri\Dropbox\private\Rollerball\rollerball_Data\Managed\Assembly-CSharp.dll into Unity Child Domain
+Platform assembly: C:\Users\dmitri\Dropbox\private\Rollerball\rollerball_Data\Managed\UnityEngine.UI.dll (this message is harmless)
+Loading C:\Users\dmitri\Dropbox\private\Rollerball\rollerball_Data\Managed\UnityEngine.UI.dll into Unity Child Domain
+- Completed reload, in  0.056 seconds
+desktop: 1920x1080 60Hz; virtual: 1920x1080 at 0,0
+<RI> Initializing input.
+<RI> Input initialized.
+<RI> Initialized touch support.
+Platform assembly: C:\Users\dmitri\Dropbox\private\Rollerball\rollerball_Data\Managed\System.Core.dll (this message is harmless)
+Platform assembly: C:\Users\dmitri\Dropbox\private\Rollerball\rollerball_Data\Managed\System.dll (this message is harmless)
+ArgumentException: The thing you want to instantiate is null.
+  at UnityEngine.Object.CheckNullArgument (System.Object arg, System.String message) [0x00000] in <filename unknown>:0 
+  at UnityEngine.Object.Instantiate[GameObject] (UnityEngine.GameObject original) [0x00000] in <filename unknown>:0 
+  at EnemyController.Awake () [0x00000] in <filename unknown>:0 
+ 
+(Filename:  Line: -1)
+
+ArgumentException: The thing you want to instantiate is null.
+  at UnityEngine.Object.CheckNullArgument (System.Object arg, System.String message) [0x00000] in <filename unknown>:0 
+  at UnityEngine.Object.Instantiate[GameObject] (UnityEngine.GameObject original) [0x00000] in <filename unknown>:0 
+  at EnemyController.Awake () [0x00000] in <filename unknown>:0 
+ 
+(Filename:  Line: -1)
+
+ArgumentException: The thing you want to instantiate is null.
+  at UnityEngine.Object.CheckNullArgument (System.Object arg, System.String message) [0x00000] in <filename unknown>:0 
+  at UnityEngine.Object.Instantiate[GameObject] (UnityEngine.GameObject original) [0x00000] in <filename unknown>:0 
+  at EnemyController.Awake () [0x00000] in <filename unknown>:0 
+ 
+(Filename:  Line: -1)
+
+ArgumentException: The thing you want to instantiate is null.
+  at UnityEngine.Object.CheckNullArgument (System.Object arg, System.String message) [0x00000] in <filename unknown>:0 
+  at UnityEngine.Object.Instantiate[GameObject] (UnityEngine.GameObject original) [0x00000] in <filename unknown>:0 
+  at EnemyController.Awake () [0x00000] in <filename unknown>:0 
+ 
+(Filename:  Line: -1)
+
+ArgumentException: The thing you want to instantiate is null.
+  at UnityEngine.Object.CheckNullArgument (System.Object arg, System.String message) [0x00000] in <filename unknown>:0 
+  at UnityEngine.Object.Instantiate[GameObject] (UnityEngine.GameObject original) [0x00000] in <filename unknown>:0 
+  at EnemyController.Awake () [0x00000] in <filename unknown>:0 
+ 
+(Filename:  Line: -1)
+
+ArgumentException: The thing you want to instantiate is null.
+  at UnityEngine.Object.CheckNullArgument (System.Object arg, System.String message) [0x00000] in <filename unknown>:0 
+  at UnityEngine.Object.Instantiate[GameObject] (UnityEngine.GameObject original) [0x00000] in <filename unknown>:0 
+  at EnemyController.Awake () [0x00000] in <filename unknown>:0 
+ 
+(Filename:  Line: -1)
+
+Enemy 5 bar (UnityEngine.UI.Slider)
+ 
+(Filename: C:/buildslave/unity/build/artifacts/generated/common/runtime/UnityEngineDebug.gen.cpp Line: 56)
+
+Enemy bar (UnityEngine.UI.Slider)
+ 
+(Filename: C:/buildslave/unity/build/artifacts/generated/common/runtime/UnityEngineDebug.gen.cpp Line: 56)
+
+Enemy 6 bar (UnityEngine.UI.Slider)
+ 
+(Filename: C:/buildslave/unity/build/artifacts/generated/common/runtime/UnityEngineDebug.gen.cpp Line: 56)
+
+Enemy 3 bar (UnityEngine.UI.Slider)
+ 
+(Filename: C:/buildslave/unity/build/artifacts/generated/common/runtime/UnityEngineDebug.gen.cpp Line: 56)
+
+Enemy 4 bar (UnityEngine.UI.Slider)
+ 
+(Filename: C:/buildslave/unity/build/artifacts/generated/common/runtime/UnityEngineDebug.gen.cpp Line: 56)
+
+Enemy 2 bar (UnityEngine.UI.Slider)
+ 
+(Filename: C:/buildslave/unity/build/artifacts/generated/common/runtime/UnityEngineDebug.gen.cpp Line: 56)
+
+Enemy 1 bar (UnityEngine.UI.Slider)
+ 
+(Filename: C:/buildslave/unity/build/artifacts/generated/common/runtime/UnityEngineDebug.gen.cpp Line: 56)
+
+Setting up 1 worker threads for Enlighten.
+  Thread -> id: 2ed0 -> priority: 1 
+3
+ 
+(Filename: C:/buildslave/unity/build/artifacts/generated/common/runtime/UnityEngineDebug.gen.cpp Line: 56)
+
+The Gimp 1 (UnityEngine.CapsuleCollider)
+ 
+(Filename: C:/buildslave/unity/build/artifacts/generated/common/runtime/UnityEngineDebug.gen.cpp Line: 56)
+
+NullReferenceException: Object reference not set to an instance of an object
+  at projectilescript.OnCollisionEnter (UnityEngine.Collision collision) [0x00000] in <filename unknown>:0 
+ 
+(Filename:  Line: -1)
+
+0
+ 
+(Filename: C:/buildslave/unity/build/artifacts/generated/common/runtime/UnityEngineDebug.gen.cpp Line: 56)
+
+ArgumentOutOfRangeException: Argument is out of range.
+Parameter name: index
+  at System.Collections.Generic.List`1[UnityEngine.Collider].get_Item (Int32 index) [0x00000] in <filename unknown>:0 
+  at PlayerController.getAgentsInRange (System.String[] layernames) [0x00000] in <filename unknown>:0 
+  at PlayerController.Grab () [0x00000] in <filename unknown>:0 
+  at PlayerController.Update () [0x00000] in <filename unknown>:0 
+ 
+(Filename:  Line: -1)
+
+ArgumentOutOfRangeException: Argument is out of range.
+Parameter name: index
+  at System.Collections.Generic.List`1[UnityEngine.Collider].get_Item (Int32 index) [0x00000] in <filename unknown>:0 
+  at PlayerController.getAgentsInRange (System.String[] layernames) [0x00000] in <filename unknown>:0 
+  at PlayerController.Grab () [0x00000] in <filename unknown>:0 
+  at PlayerController.Update () [0x00000] in <filename unknown>:0 
+ 
+(Filename:  Line: -1)
+
