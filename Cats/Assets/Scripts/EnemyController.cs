@@ -1,108 +1,92 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using BreadcrumbAi;
 
-public class EnemyController : MonoBehaviour 
+public class EnemyController : AgentController 
 {
 	
 	public float speed;
-	public int count;
+//	public int count;
 	public float turnSpeed;
 	private GameObject closestPlayer;
 	//private float health;
 
-	public GameObject healthBar;
+//	public GameObject healthBar;
+//	public GameObject hbar;
 
-	public GameObject hbar;
-
-	public float centerMassElevation = 1f;
-	private RigidbodyConstraints normalConstraints;
-	private float normalAngularDrag =2f;
-
-	private bool isGrabbed;
-
-	public bool IsGrabbed 
-	{
-		get { return isGrabbed; }
-		set {
-			isGrabbed = value;
-			if (value == false)
-			{
-				transform.position = new Vector3(transform.position.x, centerMassElevation, transform.position.z);
-			}
-		}
-	}
+	public float attackCd = 0.6f;
+	private float lastAttackTime;
+	public int basicAttackDamage = 20;
+	public float basicAttackForce = 3000f;
+	public float grabAngle;
+	public float grabRange;
 
 
-	//Rigidbody playerR;
-	//Vector3 movement;
-	
+	public float EnemyCenterMassElevation = 1f;
+	public float EnemyNormalAngularDrag =2f;
+
+	private Ai AiScript;
+
+
+
+
 	
 	void Awake (){
+		lastAttackTime = attackCd;
+		AiScript = GetComponent<Ai> ();
+		normalConstraints = GetComponent<Rigidbody>().constraints;
 		IsGrabbed = false;
 		hbar = Instantiate (healthBar);
 		hbar.name = gameObject.name + " bar";
 		hbar.GetComponent<HealthBarManager> ().targetAgent = gameObject;
-		count = 0;
-		normalConstraints = GetComponent<Rigidbody>().constraints;
 	}
 
 	void Update(){
-
-	}
-
-	public void Reset()
-	{
-		transform.position = new Vector3 (transform.position.x, centerMassElevation, transform.position.z);
-		transform.rotation = Quaternion.identity;
-		GetComponent<Rigidbody> ().angularDrag = normalAngularDrag;
-	}
-
+		//if AiScript.attackState
+		//if (AiScript.lifeState == Ai.LIFE_STATE.IsAlive) 
+		//{
+			if (AiScript.attackState ==Ai.ATTACK_STATE.CanAttackPlayer)
+			{
+				Debug.Log("attacking");
+				Attack();
+			}
 	
+		//{
+	}
+
+	protected override void Reset()
+	{
+		transform.position = new Vector3 (transform.position.x, EnemyCenterMassElevation, transform.position.z);
+		transform.rotation = Quaternion.identity;
+		GetComponent<Rigidbody> ().angularDrag = EnemyNormalAngularDrag;
+		GetComponent<Ai> ().enabled = true;
+	}
+
+
+
+
+	void Attack ()
+	{
+		if (Time.time > lastAttackTime + attackCd) 
+		{
+			//playAnimation("Attack");
+			
+			
+			Collider closestEnemyCollider = getAgentsInRange(new string[]{"Player"}, grabRange,grabAngle);
+			closestEnemyCollider.gameObject.GetComponent<HealthManager>().TakeDamage(basicAttackDamage);
+			closestEnemyCollider.gameObject.GetComponent<Rigidbody>().AddForce(Vector3.Normalize(closestEnemyCollider.transform.position - transform.position)*basicAttackForce);
+			
+			
+			lastAttackTime = Time.time;
+		}
+	}
+
 	void FixedUpdate()
 	{
-		float forward = 0f;
-		float rotate = 0f;
 
-		if (IsGrabbed == true) {
-			GetComponent<Rigidbody>().constraints = RigidbodyConstraints.None;
-
-		} 
-		else
-		{
-
-			GetComponent<Rigidbody>().constraints = normalConstraints;
-
-
-		
-		
-		//transform.position += transform.forward * forward * Time.deltaTime * speed;
-		//transform.RotateAround (transform.position, new Vector3 (0, 1, 0), rotate*turnspeed* Time.deltaTime);
-
-			GameObject[] players = GameObject.FindGameObjectsWithTag ("Player");
-			//int i = 0;
-			closestPlayer = null;
-			foreach (GameObject player in players)
-			{
-				if(closestPlayer == null || Vector3.Distance(player.transform.position, transform.position) < Vector3.Distance(closestPlayer.transform.position, transform.position))
-				{
-					closestPlayer = player;
-			
-				}
-			}
-
-			transform.rotation = Quaternion.Euler(closestPlayer.transform.position - transform.position);
-		
-			transform.LookAt (closestPlayer.transform);
-		
-			GetComponent<Rigidbody>().AddForce(transform.forward * speed * Time.deltaTime*1000);
-		//}
-		
-		//GetComponent<Rigidbody>().
-		}
-		
 	}
-	void OnTriggerEnter(Collider other) {
+	//void OnTriggerEnter(Collider other) {
 		//Destroy(other.gameObject);
 		/*if (other.gameObject.tag == "PickUp") {
 			other.gameObject.SetActive(false);
@@ -110,5 +94,5 @@ public class EnemyController : MonoBehaviour
 		}*/
 		
 		
-	}
+
 }

@@ -21,27 +21,30 @@ public class Cameracontroller : MonoBehaviour {
 	
 	// Update is called once per frame
 	void LateUpdate () {
-		Vector3 avgPosition = new Vector3 ();
 		players = GameObject.FindGameObjectsWithTag ("Player");
-		foreach (GameObject player in players) 
+		if (players.Length > 0) 
 		{
-			avgPosition += player.transform.position;
-		}
-		avgPosition = avgPosition / players.Length;
-		largestDistance = 0;
-		float temp;
-		foreach (GameObject player in players) 
-		{
-			temp = Vector3.Distance(avgPosition,player.transform.position);
-			if (temp >= largestDistance )
+			Vector3 avgPosition = new Vector3 ();
+
+			foreach (GameObject player in players) 
 			{
-				largestDistance = temp;
+				avgPosition += player.transform.position;
 			}
+			avgPosition = avgPosition / players.Length;
+			largestDistance = 0;
+			float temp;
+			foreach (GameObject player in players) 
+			{
+				temp = Vector3.Distance(avgPosition,player.transform.position);
+				if (temp >= largestDistance )
+				{
+					largestDistance = temp;
+				}
+			}
+
+
+			transform.position = avgPosition + offset;
+			playerCamera.orthographicSize = 12.5f + largestDistance*2*scaleFactor;
 		}
-
-
-		transform.position = avgPosition + offset;
-		playerCamera.orthographicSize = 7.5f + largestDistance*2*scaleFactor;
-	
 	}
 }

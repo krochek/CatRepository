@@ -11,14 +11,14 @@ public class HealthBarManager : MonoBehaviour {
 	private Camera playerCamera;
 	public GameObject targetAgent;
 	private GameObject screen;
-	private string str;
+	//private string str;
 	private Slider slider;
 
 
 	// Use this for initialization
 	void Start () {
 		screen = GameObject.Find ("Canvas");
-		str = gameObject.name;
+		//str = gameObject.name;
 		//targetAgent = GameObject.Find(str = str.Remove(str.Length - 4));
 		playerCamera = Camera.main;
 		transform.SetParent(screen.transform, false);

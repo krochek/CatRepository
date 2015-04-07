@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class PlayerController : MonoBehaviour 
+public class PlayerController : AgentController
 {
 /*
   Co-op Mechanics:
@@ -21,71 +21,58 @@ public class PlayerController : MonoBehaviour
 */
 
 
+
+
 	public float speed;
-	public int count;
 	public float turnSpeed;
+
 	public float grabRange;
 	private bool isGrabbing;
 	private FixedJoint grabbingJoint;
 	private GameObject grabbedAgent;
 	public float throwSpeed ;
 	public float grabAngle;
+
 	public GameObject projectile;
 	public float projectileSpeed;
+
 	public float attackCd = 0.6f;
 	private float lastAttackTime;
 	public float basicAttackForce = 3000f;
-	//grabbing helpers
-	public float centerMassElevation = 1f;
-	private RigidbodyConstraints normalConstraints;
-	public float normalAngularDrag = 20f;
-
-	//for damage modelling and healthbar
-	public GameObject healthBar;
-	public GameObject hbar;
-
-
-	private int enemiesLayer;
-	private int playersLayer;
-
-
-
-
 	public int basicAttackDamage = 20;
+
+
+	//grabbing helpers
+	public float PlayerCenterMassElevation = 1f;
+//	private RigidbodyConstraints normalConstraints;
+	public float PlayerNormalAngularDrag = 20f;
+
+	// for collision explosion between players
+	public float betweenPlayerExpSpeed = 10;
+	public float betweenPlayerExpRadius = 20;
+	public int expDamage = 35;
+
+	public AudioClip ExplosionSound;
+	private AudioSource source;
+
+
+	
+
+
 
 	private KeyCode[] keybinds;
 
-	//Rigidbody playerR;
-	//Vector3 movement;
-	private bool isGrabbed;
-	
-	public bool IsGrabbed 
-	{
-		get { return isGrabbed; }
-		set {
-			isGrabbed = value;
-			if (value)
-			{
-				GetComponent<Rigidbody>().constraints = RigidbodyConstraints.None;
-			}
-			else
-			{
-				transform.position = new Vector3(transform.position.x, centerMassElevation, transform.position.z);
-				GetComponent<Rigidbody>().constraints = normalConstraints;
-			}
-		}
-	}
+
 
 	void Awake()
 	{
 		hbar = Instantiate (healthBar);
 		hbar.name = gameObject.name + " bar";
 		hbar.GetComponent<HealthBarManager> ().targetAgent = gameObject;
-
-		isGrabbed = false;
 		normalConstraints = GetComponent<Rigidbody>().constraints;
-		enemiesLayer = LayerMask.NameToLayer("Enemies");
-		playersLayer = LayerMask.NameToLayer("Players");
+		IsGrabbed = false;
+		source = GetComponent<AudioSource>();
+
 	}
 
 	void Start (){
@@ -104,7 +91,6 @@ public class PlayerController : MonoBehaviour
 			break;
 		}
 
-		count = 0;
 		isGrabbing = false;
 	}
 
@@ -168,46 +154,36 @@ public class PlayerController : MonoBehaviour
 
 		FixedJoint fixed12 = axe1.AddComponent<FixedJoint> ();
 		fixed12.connectedBody = axe2.GetComponent<Rigidbody> ();
-		//fixed12.connectedBody = GameObject.Find ("Player2").GetComponent<Rigidbody> ();
 
-		//HingeJoint fixedP1P2 = gameObject.AddComponent<HingeJoint> ();
-		//fixedP1P2.connectedBody = GameObject.Find ("Player2").GetComponent<Rigidbody>();
 
 	}
 
-	Collider getAgentsInRange (string[] layernames)
-	{
-		int combinedLayers = 0;
-		foreach (string layername in layernames) {
-			combinedLayers += 1 << LayerMask.NameToLayer(layername);
-		}
-		//Collider[] enemiesInRange = Physics.OverlapSphere(transform.position, grabRange,1 << LayerMask.NameToLayer(layername));
-		Collider[] enemiesInRange = Physics.OverlapSphere(transform.position, grabRange,combinedLayers);
-		//Debug.Log (hitColliders.ToString ());
-		if (enemiesInRange.Length != 0) {
-			List<Collider> withinangleColliders = new List<Collider> ();
-			
-			foreach (Collider element in enemiesInRange) {
-				Vector3 directionToTarget = -transform.position + element.transform.position;
-				float angle = Vector3.Angle (directionToTarget, transform.forward);
-				
-				if (Mathf.Abs (angle) < grabAngle) {
-					withinangleColliders.Add (element);
-				}
-			}
-			Collider closest = withinangleColliders [0];
-			foreach (Collider element in withinangleColliders) {
-				if (Vector3.Distance (element.transform.position, transform.position) <= Vector3.Distance (closest.transform.position, transform.position)) {
-					closest = element;	
-				}
-			}
-			
-			return closest;
-		}
-		{
-			return null;
-		}
 
+
+
+
+
+	void OnCollisionEnter(Collision collision) {
+		foreach (ContactPoint contact in collision.contacts) {
+			//Debug.Log("contact");
+			if (contact.otherCollider.gameObject.layer == LayerMask.NameToLayer("Player")) 
+			{
+			//	Debug.Log("Boom");
+				Explosion(contact.point,betweenPlayerExpSpeed,betweenPlayerExpRadius,"Player","Enemy",expDamage);
+				source.PlayOneShot(ExplosionSound,0.75f);
+				StartCoroutine(slowTime(0.7f,0.25f));
+
+
+			}
+		
+		}
+	}
+
+	protected override void  Reset()
+	{
+		transform.position = new Vector3 (transform.position.x, PlayerCenterMassElevation, transform.position.z);
+		transform.rotation = Quaternion.identity;
+		GetComponent<Rigidbody> ().angularDrag = PlayerNormalAngularDrag;
 	}
 
 	void playAnimation(string animType)
@@ -219,80 +195,52 @@ public class PlayerController : MonoBehaviour
 	{
 		if (Time.time > lastAttackTime + attackCd) 
 		{
-			playAnimation("Attack");
+			Collider closestEnemyCollider = getAgentsInRange(new string[]{"Player","Enemy"},grabRange,grabAngle);
+			if (closestEnemyCollider != null)
+			{
+				playAnimation("Attack");
 
-	
-			Collider closestEnemyCollider = getAgentsInRange(new string[]{"Players","Enemies"});
-			closestEnemyCollider.gameObject.GetComponent<HealthManager>().TakeDamage(basicAttackDamage);
-			closestEnemyCollider.gameObject.GetComponent<Rigidbody>().AddForce(Vector3.Normalize(closestEnemyCollider.transform.position - transform.position)*basicAttackForce);
+		
+
+				closestEnemyCollider.gameObject.GetComponent<HealthManager>().TakeDamage(basicAttackDamage);
+				closestEnemyCollider.gameObject.GetComponent<Rigidbody>().AddForce(Vector3.Normalize(closestEnemyCollider.transform.position - transform.position)*basicAttackForce);
 
 
-			lastAttackTime = Time.time;
+				lastAttackTime = Time.time;
+			}
 		}
 	}
 
 	void Grab (){
 
-		Collider closestAgentCollider = getAgentsInRange (new string[2]{"Enemies", "Players"});
-		if (closestAgentCollider) 
+		Collider closestAgentCollider = getAgentsInRange (new string[2]{"Enemy", "Player"},grabRange,grabAngle);
+		if (closestAgentCollider != null)
 		{
 			isGrabbing = true;
 			grabbedAgent = closestAgentCollider.gameObject;
+			grabbedAgent.GetComponent<AgentController>().IsGrabbed = true;
 
-			if(grabbedAgent.layer == LayerMask.NameToLayer("Enemies"))
-			{
-				grabbedAgent.GetComponent<EnemyController>().IsGrabbed = true;
-			}
-			else if(grabbedAgent.layer == LayerMask.NameToLayer("Players"))
-			{
-				grabbedAgent.GetComponent<PlayerController>().IsGrabbed = true;
-			}
+
 			grabbingJoint = gameObject.AddComponent<FixedJoint>();
 			grabbedAgent.transform.Translate(new Vector3(0, 1f, 0), Space.World);
 			grabbingJoint.connectedBody = grabbedAgent.GetComponent<Rigidbody>();
 		} 
-		//LayerMask.NameToLayer("Enemies")
+
 	}
 
-	IEnumerator ReleaseConstraints (GameObject agentToRelease)
-	{
-		yield return new WaitForSeconds(3);
 
-		if(agentToRelease.layer == LayerMask.NameToLayer("Enemies"))
-		{
-			agentToRelease.GetComponent<EnemyController>().IsGrabbed = false;
-			agentToRelease.GetComponent<EnemyController>().Reset();
-		}
-		else if(agentToRelease.layer == LayerMask.NameToLayer("Players"))
-		{
-			agentToRelease.GetComponent<PlayerController>().IsGrabbed = false;
-			agentToRelease.GetComponent<PlayerController>().Reset();
 
-		}
-	}
 
-	void Reset()
-	{
-		transform.position = new Vector3 (transform.position.x, centerMassElevation, transform.position.z);
-		transform.rotation = Quaternion.identity;
-		GetComponent<Rigidbody> ().angularDrag = normalAngularDrag;
-	}
 
 
 
 	void Update(){
 		if (IsGrabbed == true)
 		{
-			//GetComponent<Rigidbody>().constraints = RigidbodyConstraints.None;
-			
+						
 		} else
 		{
 			
-		//	GetComponent<Rigidbody>().constraints = normalConstraints;
-		//	transform.position = new Vector3 (transform.position.x, centerMassElevation, transform.position.z);
-
-
-		
 		
 			if (isGrabbing) {
 				if (Input.GetKeyUp (keybinds[4]) == true) {
@@ -301,10 +249,12 @@ public class PlayerController : MonoBehaviour
 					Destroy (grabbingJoint);
 					enemyRigidbody.AddForce ((transform.forward + transform.up*0.2f)*throwSpeed, ForceMode.VelocityChange);
 					enemyRigidbody.angularDrag = 0;
-					StartCoroutine(ReleaseConstraints(grabbedAgent));
+					enemyRigidbody.constraints = RigidbodyConstraints.None;
+					//enemyRigidbody.gameObject.GetComponent<AgentController>().lastReleasedTime = Time.time;
+					StartCoroutine(ReleaseConstraints(enemyRigidbody.gameObject));
 				
 				}
-				//	enemyRigidbody.AddForce(Vector3.transform.rotation.y, Space.World);
+
 			} 
 			else {
 				if ( Input.GetKeyDown(keybinds[4]) == true )
@@ -328,6 +278,7 @@ public class PlayerController : MonoBehaviour
 	{
 		GameObject clone = Instantiate (projectile, transform.position + 4*Vector3.Normalize(transform.position - GameObject.Find("Player2").transform.position),Quaternion.identity) as GameObject;
 		Rigidbody clonesrigid = clone.GetComponent<Rigidbody>();
+		clone.name = "Bullet";
 		clonesrigid.AddForce(Vector3.Normalize(transform.position - GameObject.Find("Player2").transform.position)*50, ForceMode.VelocityChange);
 	}
 
@@ -347,17 +298,7 @@ public class PlayerController : MonoBehaviour
 		if (Input.GetKey (keybinds [1]) == true) {
 			rotate = -1f;
 		}
-		//shooting when connected to another player
-		
-		
-		
-		//transform.position += transform.forward * forward * Time.deltaTime * speed;
-		//transform.RotateAround (transform.position, new Vector3 (0, 1, 0), rotate*turnspeed* Time.deltaTime);
 		transform.Rotate(new Vector3 (0,1,0)*turnSpeed*rotate);
-		
-		//float moveHorizontal = Input.GetAxis ("Horizontal");
-		//float moveVertical = Input.GetAxis ("Vertical");		
-		//Vector3 movement = new Vector3(moveHorizontal, 0.0f, moveVertical); 
 		if (forward != 0f) {
 			GetComponent<Rigidbody>().AddForce(transform.forward*forward * speed * Time.deltaTime*1000);
 		}
@@ -388,9 +329,14 @@ public class PlayerController : MonoBehaviour
 			//var relativePoint = transform.InverseTransformPoint(otherTransform.position); if (relativePoint.x < 0.0) print ("Object is to the left"); else if (relativePoint.x > 0.0) print ("Object is to the right"); else print ("Object is directly ahead"); }
 			Vector3 relativePoint;		
 			relativePoint = transform.InverseTransformPoint(transform.position + new Vector3 (rotate, 0, forward));
-			GetComponent<Rigidbody>().AddTorque(Vector3.up*relativePoint.x/Mathf.Abs(relativePoint.x) * turnSpeed * Time.deltaTime*1000*Vector3.Angle(transform.forward, new Vector3(rotate,0,forward)));
-			GetComponent<Rigidbody>().AddForce(transform.forward * speed * Time.deltaTime*1000);
-
+			if (relativePoint.x != 0)
+			{
+				GetComponent<Rigidbody>().AddTorque(Vector3.up*relativePoint.x/Mathf.Abs(relativePoint.x) * turnSpeed * Time.deltaTime*1000*Vector3.Angle(transform.forward, new Vector3(rotate,0,forward)));
+			}
+			if (Vector3.Angle (transform.forward, new Vector3 (rotate,0,forward)) < 25f)
+			{
+				GetComponent<Rigidbody>().AddForce(transform.forward * speed * Time.deltaTime*1000);
+			}
 
 //			Vector3 absDirection = Vector3.Normalize(new Vector3 (rotate, 0, forward));
 //			transform.LookAt (transform.position + absDirection);
@@ -410,13 +356,5 @@ public class PlayerController : MonoBehaviour
 		//GetComponent<Rigidbody>().
 
 	}
-	void OnTriggerEnter(Collider other) {
-		//Destroy(other.gameObject);
-		if (other.gameObject.tag == "PickUp") {
-			other.gameObject.SetActive(false);
-			count = count +1;
-		}
 
-
-	}
 }

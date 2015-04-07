@@ -5,7 +5,7 @@ public class projectilescript : MonoBehaviour {
 
 	// Use this for initialization
 	private bool isExplosive = true;
-	private bool hasExploded = false;
+	//private bool hasExploded = false;
 	public float expRange = 15f;
 	public float expForce = 1000f;
 	public int projExpDamage = 1;
@@ -19,7 +19,7 @@ public class projectilescript : MonoBehaviour {
 	void OnCollisionEnter(Collision collision) {
 		if (isExplosive)
 		{
-			Collider[] hitColliders = Physics.OverlapSphere(transform.position, expRange ,1 << LayerMask.NameToLayer("Enemies"));
+			Collider[] hitColliders = Physics.OverlapSphere(transform.position, expRange ,1 << LayerMask.NameToLayer("Enemy"));
 			Debug.Log(hitColliders.Length);
 
 			foreach (Collider col in hitColliders) {

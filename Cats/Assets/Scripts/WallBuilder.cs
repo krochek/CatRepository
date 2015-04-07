@@ -4,10 +4,10 @@ using System.Collections;
 public class WallBuilder : MonoBehaviour {
 
 	public Transform brick;
-	public int gridWidth=15;
-	public int gridDepth=15;
-	public int gridHeight=15;
-	public float scaleOfCube=0.6f;
+	public int gridWidth=4;
+	public int gridDepth=4;
+	public int gridHeight=4;
+	public float scaleOfCube=1f;
 
 	void Start() {
 		for (int y = 0; y < gridHeight; y=y+2) 

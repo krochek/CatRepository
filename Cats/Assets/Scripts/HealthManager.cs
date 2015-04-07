@@ -8,7 +8,7 @@ public class HealthManager : MonoBehaviour {
 	private int currentHealth;
 	public Slider healthSlider;
 	bool isDead;
-	bool damaged;
+	//bool damaged;
 	//EnemyController enemyController;
 	//PlayerController playerController;
 	GameObject controller;
@@ -22,7 +22,7 @@ public class HealthManager : MonoBehaviour {
 
 	public void TakeDamage (int amount)
 	{
-		damaged = true;
+		//damaged = true;
 		currentHealth -= amount;
 		healthSlider.value = currentHealth;
 		if (currentHealth <=0 && isDead == false ) 
@@ -35,11 +35,11 @@ public class HealthManager : MonoBehaviour {
 	void Death ()
 	{
 		isDead = true;
-		if(gameObject.layer == LayerMask.NameToLayer("Enemies"))
+		if(gameObject.layer == LayerMask.NameToLayer("Enemy"))
 		{
 			GetComponent<EnemyController> ().enabled = false;
 		}
-		else if(gameObject.layer == LayerMask.NameToLayer("Players"))
+		else if(gameObject.layer == LayerMask.NameToLayer("Player"))
 		{
 			GetComponent<PlayerController> ().enabled = false;
 		}
@@ -49,11 +49,11 @@ public class HealthManager : MonoBehaviour {
 	}
 
 	void Start () {
-		if(gameObject.layer == LayerMask.NameToLayer("Enemies"))
+		if(gameObject.layer == LayerMask.NameToLayer("Enemy"))
 		{
 			controller = GetComponent<EnemyController> ().hbar;
 		}
-		else if(gameObject.layer == LayerMask.NameToLayer("Players"))
+		else if(gameObject.layer == LayerMask.NameToLayer("Player"))
 		{
 			controller = GetComponent<PlayerController> ().hbar;
 		}
@@ -61,8 +61,9 @@ public class HealthManager : MonoBehaviour {
 		//enemyController = GetComponent<EnemyController> ();
 		//temp = GameObject.Find (gameObject.name + " bar");
 		//temp = enemyController.hbar;
-		healthSlider =controller.GetComponent<Slider>();
-		Debug.Log (healthSlider);
+		//Debug.Log ("we got this far");
+		healthSlider = controller.GetComponent<Slider>();
+		//Debug.Log (healthSlider);
 		currentHealth = startingHealth;
 		healthSlider.value = startingHealth;
 //		Debug.Log (gameObject.name);
