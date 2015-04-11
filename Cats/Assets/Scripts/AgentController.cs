@@ -7,6 +7,7 @@ using BreadcrumbAi;
 public class AgentController : MonoBehaviour {
 
 
+
 	public float centerMassElevation = 1f;
 	protected RigidbodyConstraints normalConstraints;
 	public float normalAngularDrag = 0.3f;
@@ -14,20 +15,23 @@ public class AgentController : MonoBehaviour {
 	public GameObject healthBar;
 	public GameObject hbar;
 
-	private bool isGrabbed;
+	protected bool isNotConstrained;
 	//public float lastReleasedTime = 0;
 	public float lastGrabbedTime = 0;
+
+	//for after throw explosion on landing or hitting anything.
+	public bool justThrown;
 	
 //	public AgentController()
 //	{
 //
 //	}
 
-	public bool IsGrabbed 
+	public virtual bool IsNotConstrained 
 	{
-		get { return isGrabbed; }
+		get { return isNotConstrained; }
 		set {
-			isGrabbed = value;
+			isNotConstrained = value;
 			if (value == true)
 			{
 				lastGrabbedTime = Time.time;
@@ -36,12 +40,14 @@ public class AgentController : MonoBehaviour {
 			else
 			{
 				transform.position = new Vector3(transform.position.x, centerMassElevation, transform.position.z);
+				transform.rotation = Quaternion.identity;
 				GetComponent<Rigidbody>().constraints = normalConstraints;
+
 			}
 		}
 	}
 
-	protected Collider getAgentsInRange (string[] layernames, float range, float angle)
+	protected Collider getClosestAgentInCone (string[] layernames, float range, float angle)
 	{
 		int combinedLayers = 0;
 		foreach (string layername in layernames) {
@@ -88,7 +94,7 @@ public class AgentController : MonoBehaviour {
 			{
 				if (explodee.gameObject.layer == LayerMask.NameToLayer("Enemy"))
 				    {
-						explodee.gameObject.GetComponent<AgentController>().IsGrabbed = true;
+						explodee.gameObject.GetComponent<AgentController>().IsNotConstrained = true;
 						explodee.GetComponent<Ai>().enabled = false;
 						explodee.attachedRigidbody.angularDrag = 0;
 						StartCoroutine(ReleaseConstraints(explodee.gameObject));
@@ -122,11 +128,12 @@ public class AgentController : MonoBehaviour {
 	{
 	//	Debug.Log (agentToRelease.gameObject.GetComponent<AgentController> ().lastReleasedTime);
 		yield return new WaitForSeconds(3);
-		if ((Time.time - agentToRelease.gameObject.GetComponent<AgentController>().lastGrabbedTime) > 3f) 
+
+		if (agentToRelease != null && (Time.time - agentToRelease.gameObject.GetComponent<AgentController>().lastGrabbedTime) > 3f) 
 		{ 
 
 		//	Debug.Log (Time.time - agentToRelease.gameObject.GetComponent<AgentController>().lastReleasedTime);
-			agentToRelease.GetComponent<AgentController> ().IsGrabbed = false;
+			agentToRelease.GetComponent<AgentController> ().IsNotConstrained = false;
 			agentToRelease.GetComponent<AgentController> ().Reset ();
 		}
 

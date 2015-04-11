@@ -7,6 +7,7 @@ public class HealthManager : MonoBehaviour {
 	public int startingHealth = 100;
 	private int currentHealth;
 	public Slider healthSlider;
+	public GameObject enemyManager;
 	bool isDead;
 	//bool damaged;
 	//EnemyController enemyController;
@@ -38,6 +39,7 @@ public class HealthManager : MonoBehaviour {
 		if(gameObject.layer == LayerMask.NameToLayer("Enemy"))
 		{
 			GetComponent<EnemyController> ().enabled = false;
+			enemyManager.GetComponent<EnemyManager>().NumEnemies -=1;
 		}
 		else if(gameObject.layer == LayerMask.NameToLayer("Player"))
 		{
@@ -49,6 +51,7 @@ public class HealthManager : MonoBehaviour {
 	}
 
 	void Start () {
+		enemyManager = GameObject.Find ("EnemyManager"); 
 		if(gameObject.layer == LayerMask.NameToLayer("Enemy"))
 		{
 			controller = GetComponent<EnemyController> ().hbar;

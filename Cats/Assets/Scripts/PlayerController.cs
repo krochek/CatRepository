@@ -25,6 +25,7 @@ public class PlayerController : AgentController
 
 	public float speed;
 	public float turnSpeed;
+	public float maxSpeed;
 
 	public float grabRange;
 	private bool isGrabbing;
@@ -38,6 +39,7 @@ public class PlayerController : AgentController
 
 	public float attackCd = 0.6f;
 	private float lastAttackTime;
+
 	public float basicAttackForce = 3000f;
 	public int basicAttackDamage = 20;
 
@@ -51,6 +53,8 @@ public class PlayerController : AgentController
 	public float betweenPlayerExpSpeed = 10;
 	public float betweenPlayerExpRadius = 20;
 	public int expDamage = 35;
+
+
 
 	public AudioClip ExplosionSound;
 	private AudioSource source;
@@ -66,11 +70,14 @@ public class PlayerController : AgentController
 
 	void Awake()
 	{
+		GetComponent<Rigidbody> ().maxAngularVelocity = 20;
+
+		justThrown = false;
 		hbar = Instantiate (healthBar);
 		hbar.name = gameObject.name + " bar";
 		hbar.GetComponent<HealthBarManager> ().targetAgent = gameObject;
 		normalConstraints = GetComponent<Rigidbody>().constraints;
-		IsGrabbed = false;
+		IsNotConstrained = false;
 		source = GetComponent<AudioSource>();
 
 	}
@@ -83,11 +90,13 @@ public class PlayerController : AgentController
 		{
 		case "Player1":
 			//bindToPlayer();
-			keybinds = new KeyCode[7]{KeyCode.D , KeyCode.A , KeyCode.W, KeyCode.S, KeyCode.V, KeyCode.B, KeyCode.C};
+			//keybinds = new KeyCode[7]{KeyCode.D , KeyCode.A , KeyCode.W, KeyCode.S, KeyCode.V, KeyCode.B, KeyCode.C};
+			keybinds = new KeyCode[7]{KeyCode.D , KeyCode.A , KeyCode.W, KeyCode.S, KeyCode.Joystick4Button0, KeyCode.B, KeyCode.C};
 			break;
 
 		case "Player2":
-			keybinds = new KeyCode[7]{KeyCode.RightArrow , KeyCode.LeftArrow , KeyCode.UpArrow, KeyCode.DownArrow, KeyCode.Keypad0,KeyCode.KeypadEnter, KeyCode.KeypadPeriod};
+			//keybinds = new KeyCode[7]{KeyCode.RightArrow , KeyCode.LeftArrow , KeyCode.UpArrow, KeyCode.DownArrow, KeyCode.Keypad0,KeyCode.KeypadEnter, KeyCode.KeypadPeriod};
+			keybinds = new KeyCode[7]{KeyCode.RightArrow , KeyCode.LeftArrow , KeyCode.UpArrow, KeyCode.DownArrow, KeyCode.Joystick2Button0,KeyCode.KeypadEnter, KeyCode.KeypadPeriod};
 			break;
 		}
 
@@ -163,19 +172,38 @@ public class PlayerController : AgentController
 
 
 
+	void PlayerAsProjectile (Collision collision)
+	{
+		if (justThrown == true)
+		{
+			Explosion(collision.contacts[0].point,betweenPlayerExpSpeed*2f,betweenPlayerExpRadius,"Player","Enemy",expDamage);
+			//	StartCoroutine(slowTime(0.7f,0.25f));
+			justThrown = false;
+			
+		}
+	}
+
 	void OnCollisionEnter(Collision collision) {
-		foreach (ContactPoint contact in collision.contacts) {
-			//Debug.Log("contact");
-			if (contact.otherCollider.gameObject.layer == LayerMask.NameToLayer("Player")) 
+
+		PlayerAsProjectile (collision);
+
+		if(Time.time > gameObject.GetComponentInParent<PlayerManager>().lastCollisionTime + gameObject.GetComponentInParent<PlayerManager>().collisionCd)
+		{
+			foreach (ContactPoint contact in collision.contacts) 
 			{
-			//	Debug.Log("Boom");
-				Explosion(contact.point,betweenPlayerExpSpeed,betweenPlayerExpRadius,"Player","Enemy",expDamage);
-				source.PlayOneShot(ExplosionSound,0.75f);
-				StartCoroutine(slowTime(0.7f,0.25f));
+				//Debug.Log("contact");
+			
+				if (contact.otherCollider.gameObject.layer == LayerMask.NameToLayer("Player")) 
+				{
+					//	Debug.Log("Boom");
+					Explosion(contact.point,betweenPlayerExpSpeed,betweenPlayerExpRadius,"Player","Enemy",expDamage);
+					source.PlayOneShot(ExplosionSound,0.75f);
+					//	StartCoroutine(slowTime(0.7f,0.25f));
 
 
+				}
+				gameObject.GetComponentInParent<PlayerManager>().lastCollisionTime = Time.time;
 			}
-		
 		}
 	}
 
@@ -195,7 +223,7 @@ public class PlayerController : AgentController
 	{
 		if (Time.time > lastAttackTime + attackCd) 
 		{
-			Collider closestEnemyCollider = getAgentsInRange(new string[]{"Player","Enemy"},grabRange,grabAngle);
+			Collider closestEnemyCollider = getClosestAgentInCone(new string[]{"Player","Enemy"},grabRange,grabAngle);
 			if (closestEnemyCollider != null)
 			{
 				playAnimation("Attack");
@@ -211,31 +239,45 @@ public class PlayerController : AgentController
 		}
 	}
 
+
+
 	void Grab (){
 
-		Collider closestAgentCollider = getAgentsInRange (new string[2]{"Enemy", "Player"},grabRange,grabAngle);
+		Collider closestAgentCollider = getClosestAgentInCone (new string[2]{"Enemy", "Player"},grabRange,grabAngle);
 		if (closestAgentCollider != null)
 		{
 			isGrabbing = true;
 			grabbedAgent = closestAgentCollider.gameObject;
-			grabbedAgent.GetComponent<AgentController>().IsGrabbed = true;
+			grabbedAgent.GetComponent<AgentController>().IsNotConstrained = true;
 
 
 			grabbingJoint = gameObject.AddComponent<FixedJoint>();
-			grabbedAgent.transform.Translate(new Vector3(0, 1f, 0), Space.World);
+			grabbedAgent.transform.position = transform.position + 2f*transform.forward + 2f*transform.up;
+			//grabbedAgent.transform.Translate(new Vector3(0, 1f, 0), Space.World);
 			grabbingJoint.connectedBody = grabbedAgent.GetComponent<Rigidbody>();
 		} 
 
 	}
 
 
-
+	void releaseGrab()
+	{
+		isGrabbing = false;
+		Rigidbody enemyRigidbody = grabbingJoint.connectedBody;
+		Destroy (grabbingJoint);
+		enemyRigidbody.AddForce ((transform.forward + transform.up*0.2f)*throwSpeed, ForceMode.VelocityChange);
+		enemyRigidbody.angularDrag = 0;
+		enemyRigidbody.constraints = RigidbodyConstraints.None;
+		enemyRigidbody.gameObject.GetComponent<AgentController>().justThrown = true;
+		//enemyRigidbody.gameObject.GetComponent<AgentController>().lastReleasedTime = Time.time;
+		StartCoroutine(ReleaseConstraints(enemyRigidbody.gameObject));
+	}
 
 
 
 
 	void Update(){
-		if (IsGrabbed == true)
+		if (IsNotConstrained == true)
 		{
 						
 		} else
@@ -243,34 +285,62 @@ public class PlayerController : AgentController
 			
 		
 			if (isGrabbing) {
-				if (Input.GetKeyUp (keybinds[4]) == true) {
-					isGrabbing = false;
-					Rigidbody enemyRigidbody = grabbingJoint.connectedBody;
-					Destroy (grabbingJoint);
-					enemyRigidbody.AddForce ((transform.forward + transform.up*0.2f)*throwSpeed, ForceMode.VelocityChange);
-					enemyRigidbody.angularDrag = 0;
-					enemyRigidbody.constraints = RigidbodyConstraints.None;
-					//enemyRigidbody.gameObject.GetComponent<AgentController>().lastReleasedTime = Time.time;
-					StartCoroutine(ReleaseConstraints(enemyRigidbody.gameObject));
-				
+				Debug.DrawRay(transform.position, transform.forward*5);
+				//if (Input.GetKeyUp (keybinds[4]) == true) {
+				if (gameObject.name == "Player1" && Input.GetAxisRaw ("Joy 1 A") == 0)
+				{
+					releaseGrab();
+				}
+				else if (gameObject.name == "Player2" && Input.GetAxisRaw ("Joy 2 A") == 0)
+				{
+					releaseGrab();
 				}
 
 			} 
 			else {
-				if ( Input.GetKeyDown(keybinds[4]) == true )
+				/*if ( Input.GetKeyDown(keybinds[4]) == true )
+				{
+					Grab ();
+				}*/
+				if (gameObject.name == "Player1" && Input.GetAxisRaw ("Joy 1 A") == 1)
 				{
 					Grab ();
 				}
+				else if (gameObject.name == "Player2" && Input.GetAxisRaw ("Joy 2 A") == 1)
+				{
+					Grab ();
+				}
+				/*if (gameObject.name == "Player1" && Input.GetAxisRaw ("Joy 1 A") == 1)
+				{
+					Grab ();
+				}
+				else if (gameObject.name == "Player2" && Input.GetAxisRaw ("Joy 2 A") == 1) 
+				{
+					Grab ();
+				}*/
+
 			}
 			if (Input.GetKeyDown (keybinds [5]) == true) 
 			{
 				Shoot();
 				
 			}
-			if (Input.GetKeyDown (keybinds [6]) == true) 
+
+			// Attack
+
+			if (gameObject.name == "Player1" && Input.GetAxisRaw ("Joy 1 B") == 1)
 			{
 				Attack();
 			}
+			else if (gameObject.name == "Player2" && Input.GetAxisRaw ("Joy 2 B") == 1)
+			{
+				Attack();
+			}
+			/*
+			if (Input.GetKeyDown (keybinds [6]) == true) 
+			{
+
+			}*/
 		}
 	}
 
@@ -308,7 +378,7 @@ public class PlayerController : AgentController
 	{
 		float forward = 0f;
 		float rotate = 0f;
-		if (Input.GetKey (keybinds [2]) == true) {
+		/*if (Input.GetKey (keybinds [2]) == true) {
 			forward = 1f;
 		}
 		if (Input.GetKey (keybinds [3]) == true) {
@@ -319,6 +389,17 @@ public class PlayerController : AgentController
 		}
 		if (Input.GetKey (keybinds [1]) == true) {
 			rotate = -1f;
+		}*/
+
+		if (gameObject.name == "Player1")
+		{
+			forward = Input.GetAxisRaw ("Joy 1 Y");
+			rotate = Input.GetAxisRaw ("Joy 1 X");
+		}
+		else if (gameObject.name == "Player2") 
+		{
+			forward = Input.GetAxisRaw ("Joy 2 Y");
+			rotate = Input.GetAxisRaw ("Joy 2 X");
 		}
 		//shooting when connected to another player
 		
@@ -331,12 +412,18 @@ public class PlayerController : AgentController
 			relativePoint = transform.InverseTransformPoint(transform.position + new Vector3 (rotate, 0, forward));
 			if (relativePoint.x != 0)
 			{
-				GetComponent<Rigidbody>().AddTorque(Vector3.up*relativePoint.x/Mathf.Abs(relativePoint.x) * turnSpeed * Time.deltaTime*1000*Vector3.Angle(transform.forward, new Vector3(rotate,0,forward)));
+				GetComponent<Rigidbody>().AddTorque(Vector3.up*relativePoint.x/Mathf.Abs(relativePoint.x) * turnSpeed * Time.deltaTime*Vector3.Angle(transform.forward, new Vector3(rotate,0,forward)), ForceMode.VelocityChange);
+				//GetComponent<Rigidbody>().AddTorque(Vector3.up*relativePoint.x/Mathf.Abs(relativePoint.x)*turnSpeed , ForceMode.VelocityChange);
 			}
-			if (Vector3.Angle (transform.forward, new Vector3 (rotate,0,forward)) < 25f)
+			if (GetComponent<Rigidbody>().velocity.magnitude <= maxSpeed)
 			{
-				GetComponent<Rigidbody>().AddForce(transform.forward * speed * Time.deltaTime*1000);
+				GetComponent<Rigidbody>().AddForce(new Vector3(rotate,0,forward)*speed*Time.deltaTime,ForceMode.VelocityChange);
 			}
+			else
+			{
+				GetComponent<Rigidbody>().velocity = GetComponent<Rigidbody>().velocity.normalized*maxSpeed;
+			}
+			//}
 
 //			Vector3 absDirection = Vector3.Normalize(new Vector3 (rotate, 0, forward));
 //			transform.LookAt (transform.position + absDirection);
@@ -349,7 +436,7 @@ public class PlayerController : AgentController
 
 	void FixedUpdate()
 	{
-		if (IsGrabbed == false) {
+		if (IsNotConstrained == false) {
 			MoveAbsolute ();
 		}
 

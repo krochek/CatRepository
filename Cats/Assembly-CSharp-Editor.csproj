@@ -49,6 +49,10 @@
      <Compile Include="Assets\BreadcrumbAi\Ai\Editor\AiEditor.cs" />
      <Compile Include="Assets\BreadcrumbAi\Ai\Editor\BreadcrumbEditor.cs" />
      <None Include="Assets\BreadcrumbAi\Examples\Demo\Materials\DoubleSided.shader" />
+     <None Include="Assets\Standard Assets\Effects\Projectors\Guidelines.txt" />
+     <None Include="Assets\Standard Assets\Effects\Projectors\Shaders\ProjectorOpaque.shader" />
+     <None Include="Assets\Standard Assets\Effects\Projectors\Shaders\ProjectorLight.shader" />
+     <None Include="Assets\Standard Assets\Effects\Projectors\Shaders\ProjectorMultiply.shader" />
      <None Include="Assets\BreadcrumbAi\Ai\Documentation\ReadMe.txt" />
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
